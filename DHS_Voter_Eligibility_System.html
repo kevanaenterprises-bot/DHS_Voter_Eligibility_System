@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DHS Voter Eligibility System — Turtle Logistics LLC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #0a1628;
+  --navy2: #112240;
+  --navy3: #1a2f52;
+  --steel: #1e3a5f;
+  --accent: #00a3e0;
+  --accent2: #0077b6;
+  --gold: #c9a84c;
+  --red: #d64045;
+  --green: #2ec27e;
+  --amber: #e8a020;
+  --text: #e8edf4;
+  --text2: #8da0b8;
+  --border: rgba(0,163,224,0.18);
+  --border2: rgba(0,163,224,0.08);
+  --card: rgba(17,34,64,0.95);
+  --mono: 'IBM Plex Mono', monospace;
+  --sans: 'IBM Plex Sans', sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:var(--sans);background:var(--navy);color:var(--text);min-height:100vh;font-size:14px;}
+
+/* Layout */
+.app{display:flex;flex-direction:column;min-height:100vh;}
+.header{background:var(--navy2);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;gap:16px;height:56px;position:sticky;top:0;z-index:100;}
+.header-seal{width:36px;height:36px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#fff;letter-spacing:0.5px;flex-shrink:0;}
+.header-title{font-size:13px;font-weight:500;letter-spacing:0.5px;color:var(--text);}
+.header-sub{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.header-badge{margin-left:auto;background:rgba(201,168,76,0.15);border:1px solid var(--gold);color:var(--gold);font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:2px;letter-spacing:1px;}
+.header-user{margin-left:16px;font-size:12px;color:var(--text2);font-family:var(--mono);}
+
+.main{display:flex;flex:1;}
+.sidebar{width:220px;background:var(--navy2);border-right:1px solid var(--border2);padding:16px 0;flex-shrink:0;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto;}
+.nav-section{padding:8px 16px 4px;font-size:10px;font-family:var(--mono);color:var(--text2);letter-spacing:1.5px;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 16px;cursor:pointer;font-size:13px;color:var(--text2);transition:all 0.15s;border-left:2px solid transparent;}
+.nav-item:hover{background:rgba(0,163,224,0.07);color:var(--text);}
+.nav-item.active{background:rgba(0,163,224,0.12);color:var(--accent);border-left-color:var(--accent);}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0;}
+
+.content{flex:1;padding:24px;overflow-y:auto;}
+
+/* Cards */
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:20px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-title{font-size:13px;font-weight:500;letter-spacing:0.3px;}
+.card-sub{font-size:11px;color:var(--text2);font-family:var(--mono);}
+
+/* Stats row */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px 20px;}
+.stat-label{font-size:10px;font-family:var(--mono);color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;}
+.stat-value{font-size:28px;font-weight:300;letter-spacing:-1px;}
+.stat-meta{font-size:11px;color:var(--text2);margin-top:4px;}
+.stat-card.accent .stat-value{color:var(--accent);}
+.stat-card.green .stat-value{color:var(--green);}
+.stat-card.amber .stat-value{color:var(--amber);}
+.stat-card.red .stat-value{color:var(--red);}
+
+/* Tables */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;font-family:var(--mono);color:var(--text2);letter-spacing:1px;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
+td{padding:10px 12px;border-bottom:1px solid var(--border2);font-size:12px;vertical-align:middle;}
+tr:hover td{background:rgba(0,163,224,0.04);}
+.mono{font-family:var(--mono);}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-family:var(--mono);padding:2px 8px;border-radius:2px;letter-spacing:0.5px;white-space:nowrap;}
+.badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor;}
+.badge-verified{background:rgba(46,194,126,0.12);color:var(--green);border:1px solid rgba(46,194,126,0.25);}
+.badge-pending{background:rgba(232,160,32,0.12);color:var(--amber);border:1px solid rgba(232,160,32,0.25);}
+.badge-flagged{background:rgba(214,64,69,0.12);color:var(--red);border:1px solid rgba(214,64,69,0.25);}
+.badge-unmatched{background:rgba(141,160,184,0.12);color:var(--text2);border:1px solid rgba(141,160,184,0.25);}
+.badge-completed{background:rgba(46,194,126,0.12);color:var(--green);border:1px solid rgba(46,194,126,0.25);}
+.badge-processing{background:rgba(0,163,224,0.12);color:var(--accent);border:1px solid rgba(0,163,224,0.25);}
+.badge-queued{background:rgba(141,160,184,0.12);color:var(--text2);border:1px solid rgba(141,160,184,0.25);}
+.badge-yes{background:rgba(46,194,126,0.12);color:var(--green);border:1px solid rgba(46,194,126,0.25);}
+.badge-no{background:rgba(141,160,184,0.10);color:var(--text2);border:1px solid rgba(141,160,184,0.20);}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:3px;border:1px solid;font-size:12px;font-family:var(--sans);cursor:pointer;transition:all 0.15s;font-weight:500;}
+.btn-primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent2);}
+.btn-outline{background:transparent;border-color:var(--border);color:var(--text2);}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+
+/* Filters */
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;}
+.filter-input{background:var(--navy2);border:1px solid var(--border);border-radius:3px;padding:7px 12px;color:var(--text);font-size:12px;font-family:var(--sans);outline:none;transition:border 0.15s;}
+.filter-input:focus{border-color:var(--accent);}
+.filter-select{background:var(--navy2);border:1px solid var(--border);border-radius:3px;padding:7px 12px;color:var(--text);font-size:12px;font-family:var(--sans);outline:none;cursor:pointer;}
+.filter-label{font-size:11px;color:var(--text2);font-family:var(--mono);}
+
+/* Progress bars */
+.prog-bar{height:4px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:2px;transition:width 0.6s ease;}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;}
+.tab{padding:10px 20px;font-size:12px;cursor:pointer;color:var(--text2);border-bottom:2px solid transparent;transition:all 0.15s;margin-bottom:-1px;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* Sections */
+.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-title{font-size:16px;font-weight:500;}
+.section-meta{font-size:11px;color:var(--text2);font-family:var(--mono);}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;}
+.mb-16{margin-bottom:16px;}
+.mb-24{margin-bottom:24px;}
+
+/* Citizen detail panel */
+.detail-panel{position:fixed;right:0;top:56px;height:calc(100vh - 56px);width:420px;background:var(--navy2);border-left:1px solid var(--border);padding:24px;overflow-y:auto;transform:translateX(100%);transition:transform 0.25s ease;z-index:50;}
+.detail-panel.open{transform:translateX(0);}
+.detail-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;line-height:1;}
+.detail-field{margin-bottom:16px;}
+.detail-label{font-size:10px;font-family:var(--mono);color:var(--text2);letter-spacing:1px;text-transform:uppercase;margin-bottom:4px;}
+.detail-value{font-size:13px;}
+.detail-divider{height:1px;background:var(--border2);margin:16px 0;}
+
+/* Citizen lookup */
+.lookup-wrap{max-width:600px;margin:0 auto;}
+.lookup-box{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:32px;}
+.lookup-title{font-size:20px;font-weight:300;margin-bottom:4px;}
+.lookup-sub{font-size:12px;color:var(--text2);margin-bottom:24px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;}
+.form-group{display:flex;flex-direction:column;gap:6px;}
+.form-label{font-size:10px;font-family:var(--mono);color:var(--text2);letter-spacing:1px;text-transform:uppercase;}
+.form-input{background:var(--navy2);border:1px solid var(--border);border-radius:3px;padding:10px 12px;color:var(--text);font-size:13px;font-family:var(--sans);outline:none;transition:border 0.15s;}
+.form-input:focus{border-color:var(--accent);}
+.result-box{margin-top:24px;padding:20px;border-radius:4px;}
+.result-box.verified{background:rgba(46,194,126,0.08);border:1px solid rgba(46,194,126,0.3);}
+.result-box.pending{background:rgba(232,160,32,0.08);border:1px solid rgba(232,160,32,0.3);}
+.result-box.flagged{background:rgba(214,64,69,0.08);border:1px solid rgba(214,64,69,0.3);}
+.result-box.not-found{background:rgba(141,160,184,0.08);border:1px solid rgba(141,160,184,0.3);}
+
+/* Ingest module */
+.upload-zone{border:1px dashed var(--border);border-radius:4px;padding:40px;text-align:center;cursor:pointer;transition:all 0.15s;}
+.upload-zone:hover{border-color:var(--accent);background:rgba(0,163,224,0.04);}
+.upload-icon{font-size:32px;margin-bottom:12px;opacity:0.5;}
+.timeline{display:flex;flex-direction:column;gap:0;}
+.timeline-item{display:flex;gap:16px;padding:12px 0;}
+.timeline-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;}
+.timeline-dot-active{background:var(--accent);}
+.timeline-dot-done{background:var(--green);}
+.timeline-dot-pending{background:var(--border);border:1px solid var(--text2);}
+.timeline-line{position:relative;}
+
+/* Responsive */
+@media(max-width:900px){.stats-grid{grid-template-columns:1fr 1fr;}.grid-2,.grid-3{grid-template-columns:1fr;}}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* Watermark */
+.prototype-bar{background:rgba(201,168,76,0.1);border-bottom:1px solid var(--gold);padding:4px 24px;font-size:10px;font-family:var(--mono);color:var(--gold);letter-spacing:1px;text-align:center;}
+
+/* Alert */
+.alert{padding:10px 14px;border-radius:3px;font-size:12px;margin-bottom:16px;}
+.alert-info{background:rgba(0,163,224,0.1);border:1px solid rgba(0,163,224,0.25);color:var(--accent);}
+.alert-warn{background:rgba(232,160,32,0.1);border:1px solid rgba(232,160,32,0.25);color:var(--amber);}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="prototype-bar">⚠ PROTOTYPE — TEST DATA ONLY — NOT FOR OPERATIONAL USE &nbsp;|&nbsp; © 2026 Turtle Logistics LLC — All Rights Reserved &nbsp;|&nbsp; Proprietary &amp; Confidential</div>
+
+  <header class="header">
+    <div class="header-seal">DHS</div>
+    <div>
+      <div class="header-title">Voter Eligibility & Citizenship Verification System</div>
+      <div class="header-sub">U.S. Department of Homeland Security · Executive Order Implementation</div>
+    </div>
+    <div class="header-badge">PROTOTYPE</div>
+    <div class="header-user">DEMO_ADMIN · Session active</div>
+  </header>
+
+  <div class="main">
+    <nav class="sidebar">
+      <div class="nav-section">Overview</div>
+      <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-dot"></span>Dashboard</div>
+      <div class="nav-item" onclick="navigate('architecture')"><span class="nav-dot"></span>System Architecture</div>
+
+      <div class="nav-section">DHS Admin</div>
+      <div class="nav-item" onclick="navigate('ingest')"><span class="nav-dot"></span>Data Ingest</div>
+      <div class="nav-item" onclick="navigate('citizens')"><span class="nav-dot"></span>Citizenship List</div>
+      <div class="nav-item" onclick="navigate('reconcile')"><span class="nav-dot"></span>Reconciliation</div>
+
+      <div class="nav-section">State Officials</div>
+      <div class="nav-item" onclick="navigate('states')"><span class="nav-dot"></span>State Dashboard</div>
+      <div class="nav-item" onclick="navigate('mailballot')"><span class="nav-dot"></span>Mail Ballot List</div>
+
+      <div class="nav-section">Public</div>
+      <div class="nav-item" onclick="navigate('lookup')"><span class="nav-dot"></span>Citizen Lookup</div>
+
+      <div class="nav-section">System</div>
+      <div class="nav-item" onclick="navigate('audit')"><span class="nav-dot"></span>Audit Log</div>
+      <div class="nav-item" onclick="navigate('api')"><span class="nav-dot"></span>API Reference</div>
+    </nav>
+
+    <div class="content" id="content"></div>
+  </div>
+</div>
+
+<!-- Detail panel -->
+<div class="detail-panel" id="detailPanel">
+  <button class="detail-close" onclick="closeDetail()">✕</button>
+  <div id="detailContent"></div>
+</div>
+
+<script>
+// ── Test data ──────────────────────────────────────────────────────────────
+const STATES_DATA = [
+  {code:'TX',name:'Texas',totalRegistered:17842310},
+  {code:'CA',name:'California',totalRegistered:22047448},
+  {code:'FL',name:'Florida',totalRegistered:14441406},
+  {code:'NY',name:'New York',totalRegistered:13000000},
+  {code:'AZ',name:'Arizona',totalRegistered:4285855},
+  {code:'GA',name:'Georgia',totalRegistered:7943879},
+  {code:'PA',name:'Pennsylvania',totalRegistered:9091371},
+  {code:'MI',name:'Michigan',totalRegistered:8127240},
+  {code:'NC',name:'North Carolina',totalRegistered:7629796},
+  {code:'NV',name:'Nevada',totalRegistered:2068346},
+];
+const firstNames=['James','Mary','John','Patricia','Robert','Jennifer','Michael','Linda','William','Barbara','David','Susan','Richard','Jessica','Joseph','Sarah','Thomas','Karen','Charles','Lisa','Christopher','Nancy','Daniel','Betty','Matthew','Margaret','Anthony','Sandra','Mark','Ashley','Donald','Dorothy','Steven','Kimberly','Paul','Emily','Andrew','Donna','Joshua','Michelle'];
+const lastNames=['Smith','Johnson','Williams','Brown','Jones','Garcia','Miller','Davis','Rodriguez','Martinez','Hernandez','Lopez','Gonzalez','Wilson','Anderson','Thomas','Taylor','Moore','Jackson','Martin','Lee','Perez','Thompson','White','Harris','Sanchez','Clark','Ramirez','Lewis','Robinson','Walker','Young','Allen','King','Wright','Scott','Torres','Nguyen','Hill','Flores'];
+const counties=['Jefferson','Montgomery','Franklin','Lincoln','Washington','Madison','Jackson','Hamilton','Adams','Grant'];
+const flagReasons=['Name mismatch across sources','DOB discrepancy','Multiple records found','Address conflict','SSN not on file'];
+const dataSources=['SSA + DMV','SSA + USCIS','DMV only','All three sources'];
+
+function rnd(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function rndInt(a,b){return Math.floor(Math.random()*(b-a+1))+a;}
+function rndDate(y1,y2){const y=rndInt(y1,y2),m=rndInt(1,12),d=rndInt(1,28);return `${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;}
+
+function weightedStatus(){
+  const r=Math.random();
+  if(r<0.72)return'verified';
+  if(r<0.87)return'pending';
+  if(r<0.95)return'flagged';
+  return'unmatched';
+}
+
+// Seed for reproducibility
+let seed=42;
+function seededRand(){seed=(seed*1664525+1013904223)&0xffffffff;return(seed>>>0)/0xffffffff;}
+
+const CITIZENS=[];
+for(let i=0;i<300;i++){
+  const st=STATES_DATA[i%STATES_DATA.length];
+  const status=weightedStatus();
+  const dobYear=rndInt(1930,2006);
+  CITIZENS.push({
+    id:`CIT-${String(i+1).padStart(6,'0')}`,
+    firstName:rnd(firstNames),
+    lastName:rnd(lastNames),
+    dob:`${dobYear}-${String(rndInt(1,12)).padStart(2,'0')}-${String(rndInt(1,28)).padStart(2,'0')}`,
+    age:2026-dobYear,
+    state:st.code,
+    stateName:st.name,
+    ssn:`***-**-${rndInt(1000,9999)}`,
+    dlNumber:`${st.code}${rndInt(10000000,99999999)}`,
+    status,
+    dataSource:rnd(dataSources),
+    enrolledMailBallot:Math.random()>0.58,
+    lastVerified:rndDate(2026,2026),
+    flagReason:status==='flagged'?rnd(flagReasons):null,
+    county:rnd(counties),
+  });
+}
+
+const BATCHES=[
+  {id:'BATCH-2026-001',agency:'SSA',records:1842310,status:'completed',submitted:'2026-02-14',processed:'2026-02-16',matched:1798442,unmatched:43868},
+  {id:'BATCH-2026-002',agency:'USCIS/SAVE',records:284110,status:'completed',submitted:'2026-02-18',processed:'2026-02-19',matched:281002,unmatched:3108},
+  {id:'BATCH-2026-003',agency:'State DMV',records:9241880,status:'completed',submitted:'2026-02-20',processed:'2026-02-23',matched:9012344,unmatched:229536},
+  {id:'BATCH-2026-004',agency:'SSA',records:2100000,status:'processing',submitted:'2026-03-28',processed:null,matched:1420000,unmatched:null},
+  {id:'BATCH-2026-005',agency:'State DMV',records:540000,status:'queued',submitted:'2026-04-03',processed:null,matched:null,unmatched:null},
+];
+
+const STATE_STATS=STATES_DATA.map(s=>({
+  ...s,
+  verified:Math.floor(s.totalRegistered*0.74),
+  pending:Math.floor(s.totalRegistered*0.13),
+  flagged:Math.floor(s.totalRegistered*0.06),
+  mailBallotEnrolled:Math.floor(s.totalRegistered*0.31),
+  listTransmitted:Math.random()>0.35,
+  lastSync:rndDate(2026,2026),
+}));
+
+const AUDIT_LOG=[
+  {ts:'2026-04-04 09:41:22',user:'DHS_ADMIN_01',action:'LIST_TRANSMIT',detail:'Transmitted citizenship list to TX (17.8M records)'},
+  {ts:'2026-04-04 09:12:05',user:'TX_ELEC_OFFICIAL',action:'LIST_PULL',detail:'State TX pulled citizenship list via API'},
+  {ts:'2026-04-04 08:55:18',user:'DHS_ADMIN_01',action:'BATCH_INGEST',detail:'Initiated BATCH-2026-005 (540K records, DMV)'},
+  {ts:'2026-04-03 17:22:44',user:'DHS_ADMIN_02',action:'FLAG_RESOLVE',detail:'Resolved 142 flagged records in AZ'},
+  {ts:'2026-04-03 16:10:09',user:'CA_ELEC_OFFICIAL',action:'MAILBALLOT_SYNC',detail:'CA synced mail ballot participation list (USPS feed)'},
+  {ts:'2026-04-03 14:08:33',user:'DHS_ADMIN_01',action:'BATCH_COMPLETE',detail:'BATCH-2026-004 processing at 67%'},
+  {ts:'2026-04-02 11:45:00',user:'SYSTEM',action:'AUTO_CROSSCHECK',detail:'Nightly SSA/DMV cross-check complete — 312 new mismatches'},
+  {ts:'2026-04-01 09:00:00',user:'SYSTEM',action:'USPS_FEED',detail:'USPS mail ballot address verification feed received'},
+];
+
+// ── State ──────────────────────────────────────────────────────────────────
+let currentPage='dashboard';
+let citizenFilter='';
+let statusFilter='all';
+let stateFilter='all';
+let citizenPage=0;
+const PAGE_SIZE=20;
+
+function navigate(page){
+  currentPage=page;
+  document.querySelectorAll('.nav-item').forEach(el=>{
+    el.classList.toggle('active',el.getAttribute('onclick')===`navigate('${page}')`);
+  });
+  closeDetail();
+  render();
+}
+
+function fmt(n){return n==null?'—':n.toLocaleString();}
+function pct(a,b){return b?Math.round(a/b*100)+'%':'—';}
+
+function badge(status){
+  const map={verified:'badge-verified',pending:'badge-pending',flagged:'badge-flagged',unmatched:'badge-unmatched',completed:'badge-completed',processing:'badge-processing',queued:'badge-queued'};
+  return `<span class="badge ${map[status]||''}">${status}</span>`;
+}
+
+// ── Pages ──────────────────────────────────────────────────────────────────
+function renderArchitecture(){
+  return `
+  <div class="section-header mb-24">
+    <div>
+      <div class="section-title">System Architecture</div>
+      <div class="section-meta">Agency data flows · federal integration · state delivery</div>
+    </div>
+  </div>
+
+  <div class="card mb-16">
+    <div class="card-header"><div class="card-title">End-to-end data flow</div><div class="card-sub">Click any node to learn more</div></div>
+    <div style="overflow-x:auto;padding:8px 0">
+    <svg width="100%" viewBox="0 0 720 740" style="max-width:720px;display:block;margin:0 auto">
+    <defs>
+      <marker id="arr2" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+        <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </marker>
+    </defs>
+
+    <!-- Tier label: Federal data sources -->
+    <text x="360" y="24" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8" letter-spacing="1.5">FEDERAL DATA SOURCES</text>
+
+    <!-- SSA -->
+    <g style="cursor:pointer" onclick="this.querySelector('rect').style.opacity=0.8;setTimeout(()=>this.querySelector('rect').style.opacity=1,200)">
+      <rect x="30" y="36" width="160" height="56" rx="6" fill="#0d2a4a" stroke="#00a3e0" stroke-width="0.8" stroke-opacity="0.5"/>
+      <text x="110" y="60" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#e8edf4">SSA</text>
+      <text x="110" y="78" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Citizenship &amp; identity</text>
+    </g>
+
+    <!-- USCIS -->
+    <g style="cursor:pointer">
+      <rect x="280" y="36" width="160" height="56" rx="6" fill="#0d2a4a" stroke="#00a3e0" stroke-width="0.8" stroke-opacity="0.5"/>
+      <text x="360" y="60" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#e8edf4">USCIS / SAVE</text>
+      <text x="360" y="78" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Non-citizen detection</text>
+    </g>
+
+    <!-- State DMV -->
+    <g style="cursor:pointer">
+      <rect x="530" y="36" width="160" height="56" rx="6" fill="#0d2a4a" stroke="#00a3e0" stroke-width="0.8" stroke-opacity="0.5"/>
+      <text x="610" y="60" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#e8edf4">State DMV</text>
+      <text x="610" y="78" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">ID &amp; residency records</text>
+    </g>
+
+    <!-- Arrows to DHS -->
+    <line x1="110" y1="92" x2="270" y2="192" stroke="#00a3e0" stroke-width="1.2" stroke-opacity="0.6" marker-end="url(#arr2)"/>
+    <line x1="360" y1="92" x2="360" y2="192" stroke="#00a3e0" stroke-width="1.2" stroke-opacity="0.6" marker-end="url(#arr2)"/>
+    <line x1="610" y1="92" x2="450" y2="192" stroke="#00a3e0" stroke-width="1.2" stroke-opacity="0.6" marker-end="url(#arr2)"/>
+
+    <!-- DHS Hub -->
+    <text x="360" y="184" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8" letter-spacing="1.5">DHS — CENTRAL HUB</text>
+    <g style="cursor:pointer" onclick="navigate('ingest')">
+      <rect x="155" y="196" width="410" height="64" rx="6" fill="#0a1e38" stroke="#6c5ce7" stroke-width="1.2"/>
+      <text x="360" y="222" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="14" font-weight="500" fill="#e8edf4">Department of Homeland Security</text>
+      <text x="360" y="242" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Compiles State Citizenship Lists · manages matching · cross-references agencies</text>
+    </g>
+
+    <!-- Arrow down to Citizenship List -->
+    <line x1="360" y1="260" x2="360" y2="306" stroke="#8da0b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+    <!-- State Citizenship List -->
+    <text x="360" y="298" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8" letter-spacing="1.5">OUTPUT</text>
+    <g style="cursor:pointer" onclick="navigate('citizens')">
+      <rect x="155" y="310" width="410" height="56" rx="6" fill="#0a2a1e" stroke="#2ec27e" stroke-width="1.2"/>
+      <text x="360" y="334" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="14" font-weight="500" fill="#e8edf4">State Citizenship List</text>
+      <text x="360" y="352" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Verified citizens · 18+ · per state · per election cycle</text>
+    </g>
+
+    <!-- Fork arrows to State Officials and USPS -->
+    <line x1="260" y1="366" x2="170" y2="432" stroke="#8da0b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+    <line x1="460" y1="366" x2="548" y2="432" stroke="#8da0b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+    <!-- State Election Officials -->
+    <g style="cursor:pointer" onclick="navigate('states')">
+      <rect x="30" y="436" width="260" height="64" rx="6" fill="#1a1a0a" stroke="#c9a84c" stroke-width="1.2"/>
+      <text x="160" y="462" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#e8edf4">State Election Officials</text>
+      <text x="160" y="480" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Cross-reference voter rolls · sync list</text>
+    </g>
+
+    <!-- USPS -->
+    <g style="cursor:pointer" onclick="navigate('mailballot')">
+      <rect x="428" y="436" width="262" height="64" rx="6" fill="#1a0a0a" stroke="#d64045" stroke-width="1.2"/>
+      <text x="559" y="462" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="13" font-weight="500" fill="#e8edf4">USPS</text>
+      <text x="559" y="480" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Sends mail ballots to verified list only</text>
+    </g>
+
+    <!-- DOJ enforcement -->
+    <rect x="555" y="330" width="145" height="50" rx="6" fill="#111827" stroke="#8da0b8" stroke-width="0.8" stroke-dasharray="4 3"/>
+    <text x="627" y="350" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="12" font-weight="500" fill="#8da0b8">DOJ</text>
+    <text x="627" y="367" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#636e7a">Enforcement · fund withholding</text>
+    <line x1="575" y1="330" x2="530" y2="278" stroke="#8da0b8" stroke-width="0.8" stroke-dasharray="4 3" marker-end="url(#arr2)"/>
+
+    <!-- Arrows down to app -->
+    <line x1="160" y1="500" x2="255" y2="572" stroke="#8da0b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+    <line x1="559" y1="500" x2="465" y2="572" stroke="#8da0b8" stroke-width="1.2" marker-end="url(#arr2)"/>
+
+    <!-- Citizen-facing app -->
+    <g style="cursor:pointer" onclick="navigate('lookup')">
+      <rect x="140" y="576" width="440" height="64" rx="6" fill="#0a1e38" stroke="#00a3e0" stroke-width="1.5"/>
+      <text x="360" y="602" text-anchor="middle" font-family="IBM Plex Sans,sans-serif" font-size="14" font-weight="500" fill="#e8edf4">State-Integrated Voter Eligibility App</text>
+      <text x="360" y="622" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Citizen lookup · mail ballot enrollment · correction requests · status check</text>
+    </g>
+
+    <!-- Legend -->
+    <rect x="30" y="666" width="12" height="10" rx="2" fill="#0d2a4a" stroke="#00a3e0" stroke-width="0.8"/>
+    <text x="48" y="675" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Federal source</text>
+    <rect x="160" y="666" width="12" height="10" rx="2" fill="#0a2a1e" stroke="#2ec27e" stroke-width="0.8"/>
+    <text x="178" y="675" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">List output</text>
+    <rect x="280" y="666" width="12" height="10" rx="2" fill="#1a1a0a" stroke="#c9a84c" stroke-width="0.8"/>
+    <text x="298" y="675" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">State officials</text>
+    <rect x="410" y="666" width="12" height="10" rx="2" fill="#1a0a0a" stroke="#d64045" stroke-width="0.8"/>
+    <text x="428" y="675" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Mail ballot</text>
+    <rect x="530" y="666" width="12" height="10" rx="2" fill="#0a1e38" stroke="#00a3e0" stroke-width="1.2"/>
+    <text x="548" y="675" font-family="IBM Plex Mono,monospace" font-size="10" fill="#8da0b8">Citizen-facing</text>
+    <text x="360" y="706" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="10" fill="#636e7a">Click any node to navigate to that module</text>
+    </svg>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Matching logic</div></div>
+      <div class="timeline">
+        <div class="timeline-item"><div class="timeline-dot timeline-dot-done"></div><div><div style="font-size:12px">Agency batch received &amp; checksum verified</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot timeline-dot-done"></div><div><div style="font-size:12px">Decrypt &amp; parse records</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot timeline-dot-done"></div><div><div style="font-size:12px">Cross-reference SSA / USCIS / DMV by SSN + name + DOB</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot timeline-dot-done"></div><div><div style="font-size:12px">Flag mismatches — route to reconciliation queue</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot timeline-dot-done"></div><div><div style="font-size:12px">Append verified records to State Citizenship List</div></div></div>
+        <div class="timeline-item"><div class="timeline-dot timeline-dot-done"></div><div><div style="font-size:12px">Transmit encrypted list to state via API</div></div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Key design decisions</div></div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="border-left:2px solid var(--accent);padding-left:12px"><div style="font-size:12px;font-weight:500">Web-only, no mobile app</div><div style="font-size:11px;color:var(--text2);margin-top:2px">All data stays server-side. No local caching of PII on devices.</div></div>
+        <div style="border-left:2px solid var(--green);padding-left:12px"><div style="font-size:12px;font-weight:500">DHS as central hub</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Single authoritative source. States pull from DHS, not directly from SSA/DMV.</div></div>
+        <div style="border-left:2px solid var(--amber);padding-left:12px"><div style="font-size:12px;font-weight:500">State-specific encryption keys</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Each state receives its list encrypted with its own key. No cross-state exposure.</div></div>
+        <div style="border-left:2px solid var(--gold);padding-left:12px"><div style="font-size:12px;font-weight:500">Immutable audit log</div><div style="font-size:11px;color:var(--text2);margin-top:2px">Every action logged. Compliance with 44 U.S.C. § 3301 Federal Records Act.</div></div>
+        <div style="border-left:2px solid var(--red);padding-left:12px"><div style="font-size:12px;font-weight:500">Correction mechanism required</div><div style="font-size:11px;color:var(--text2);margin-top:2px">EO mandates citizens can correct their record. Public portal handles this.</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderDashboard(){
+  const totalCitizens=CITIZENS.length*10000;
+  const verified=CITIZENS.filter(c=>c.status==='verified').length*10000;
+  const flagged=CITIZENS.filter(c=>c.status==='flagged').length*10000;
+  const mailBallot=CITIZENS.filter(c=>c.enrolledMailBallot).length*10000;
+
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">System Overview</div>
+      <div class="section-meta">Last updated: 2026-04-04 09:41 UTC · Cycle: 2026 Midterm Elections</div>
+    </div>
+    <button class="btn btn-primary btn-sm">↓ Export Report</button>
+  </div>
+
+  <div class="alert alert-warn">
+    ⚠ BATCH-2026-004 currently processing (67% complete). Some state lists may be incomplete until processing finishes.
+  </div>
+
+  <div class="stats-grid mb-24">
+    <div class="stat-card accent">
+      <div class="stat-label">Total records</div>
+      <div class="stat-value">${fmt(totalCitizens)}</div>
+      <div class="stat-meta">Across all 10 pilot states</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Verified citizens</div>
+      <div class="stat-value">${fmt(verified)}</div>
+      <div class="stat-meta">${pct(verified,totalCitizens)} of total</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Flagged / pending</div>
+      <div class="stat-value">${fmt(flagged)}</div>
+      <div class="stat-meta">Requires review</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Mail ballot enrolled</div>
+      <div class="stat-value" style="color:var(--accent)">${fmt(mailBallot)}</div>
+      <div class="stat-meta">On USPS send list</div>
+    </div>
+  </div>
+
+  <div class="grid-2 mb-16">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Data ingest pipeline</div>
+          <div class="card-sub">Agency feed status</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>Batch ID</th><th>Agency</th><th>Records</th><th>Status</th><th>Match rate</th></tr></thead>
+        <tbody>
+          ${BATCHES.map(b=>`<tr>
+            <td class="mono">${b.id}</td>
+            <td>${b.agency}</td>
+            <td class="mono">${fmt(b.records)}</td>
+            <td>${badge(b.status)}</td>
+            <td>${b.matched!=null?pct(b.matched,b.records):'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">State transmission status</div>
+          <div class="card-sub">Citizenship list delivery</div>
+        </div>
+      </div>
+      <table>
+        <thead><tr><th>State</th><th>Total</th><th>Verified</th><th>Transmitted</th></tr></thead>
+        <tbody>
+          ${STATE_STATS.slice(0,8).map(s=>`<tr>
+            <td><strong>${s.code}</strong> <span style="color:var(--text2)">${s.name}</span></td>
+            <td class="mono">${fmt(s.totalRegistered)}</td>
+            <td>${pct(s.verified,s.totalRegistered)}</td>
+            <td><span class="badge ${s.listTransmitted?'badge-verified':'badge-pending'}">${s.listTransmitted?'sent':'pending'}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Recent activity</div>
+    </div>
+    <div class="timeline">
+      ${AUDIT_LOG.slice(0,6).map(e=>`
+        <div class="timeline-item">
+          <div class="timeline-dot timeline-dot-done" style="margin-top:4px"></div>
+          <div>
+            <div style="font-size:12px">${e.detail}</div>
+            <div style="font-size:10px;color:var(--text2);font-family:var(--mono);margin-top:2px">${e.ts} · ${e.user} · ${e.action}</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>`;
+}
+
+function renderCitizens(){
+  let filtered=CITIZENS.filter(c=>{
+    const q=citizenFilter.toLowerCase();
+    const matchQ=!q||(c.firstName+' '+c.lastName).toLowerCase().includes(q)||c.id.toLowerCase().includes(q)||c.ssn.includes(q);
+    const matchS=statusFilter==='all'||c.status===statusFilter;
+    const matchSt=stateFilter==='all'||c.state===stateFilter;
+    return matchQ&&matchS&&matchSt;
+  });
+  const total=filtered.length;
+  const page=filtered.slice(citizenPage*PAGE_SIZE,(citizenPage+1)*PAGE_SIZE);
+  const pages=Math.ceil(total/PAGE_SIZE);
+
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">State Citizenship List</div>
+      <div class="section-meta">${fmt(total)} records · Sample dataset (300 synthetic records)</div>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="alert('In production: exports encrypted CSV for state transmission')">↓ Export List</button>
+  </div>
+
+  <div class="filter-row">
+    <input class="filter-input" style="width:220px" placeholder="Search name, ID, SSN…" value="${citizenFilter}" oninput="citizenFilter=this.value;citizenPage=0;render()">
+    <select class="filter-select" onchange="statusFilter=this.value;citizenPage=0;render()">
+      <option value="all" ${statusFilter==='all'?'selected':''}>All statuses</option>
+      <option value="verified" ${statusFilter==='verified'?'selected':''}>Verified</option>
+      <option value="pending" ${statusFilter==='pending'?'selected':''}>Pending</option>
+      <option value="flagged" ${statusFilter==='flagged'?'selected':''}>Flagged</option>
+      <option value="unmatched" ${statusFilter==='unmatched'?'selected':''}>Unmatched</option>
+    </select>
+    <select class="filter-select" onchange="stateFilter=this.value;citizenPage=0;render()">
+      <option value="all">All states</option>
+      ${STATES_DATA.map(s=>`<option value="${s.code}" ${stateFilter===s.code?'selected':''}>${s.code} — ${s.name}</option>`).join('')}
+    </select>
+    <span class="filter-label">${total} results</span>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Record ID</th><th>Name</th><th>DOB</th><th>State</th><th>Status</th><th>Data source</th><th>Mail ballot</th><th>Last verified</th><th></th></tr></thead>
+        <tbody>
+          ${page.map(c=>`<tr style="cursor:pointer" onclick="openCitizen('${c.id}')">
+            <td class="mono">${c.id}</td>
+            <td><strong>${c.firstName} ${c.lastName}</strong></td>
+            <td class="mono">${c.dob}</td>
+            <td>${c.state}</td>
+            <td>${badge(c.status)}</td>
+            <td style="color:var(--text2);font-size:11px">${c.dataSource}</td>
+            <td><span class="badge ${c.enrolledMailBallot?'badge-yes':'badge-no'}">${c.enrolledMailBallot?'enrolled':'no'}</span></td>
+            <td class="mono" style="color:var(--text2);font-size:11px">${c.lastVerified}</td>
+            <td><button class="btn btn-outline btn-sm" onclick="event.stopPropagation();openCitizen('${c.id}')">View</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding-top:14px;border-top:1px solid var(--border2)">
+      <span style="font-size:11px;color:var(--text2);font-family:var(--mono)">Page ${citizenPage+1} of ${pages} · ${PAGE_SIZE} per page</span>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-outline btn-sm" onclick="if(citizenPage>0){citizenPage--;render();}" ${citizenPage===0?'disabled':''}>← Prev</button>
+        <button class="btn btn-outline btn-sm" onclick="if(citizenPage<${pages-1}){citizenPage++;render();}" ${citizenPage>=pages-1?'disabled':''}>Next →</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderIngest(){
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">Data Ingest</div>
+      <div class="section-meta">Agency data feeds · SSA · USCIS/SAVE · State DMV</div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    ℹ In production, agency feeds are transmitted via encrypted SFTP over FedRAMP-approved channels. This interface simulates the ingest queue and matching pipeline.
+  </div>
+
+  <div class="grid-2 mb-16">
+    <div class="card">
+      <div class="card-header"><div class="card-title">Submit new data batch</div></div>
+      <div class="form-group mb-16">
+        <div class="form-label">Source agency</div>
+        <select class="form-input" id="ingestAgency">
+          <option>SSA — Social Security Administration</option>
+          <option>USCIS/SAVE — Citizenship verification</option>
+          <option>State DMV — Driver license / ID records</option>
+        </select>
+      </div>
+      <div class="form-group mb-16">
+        <div class="form-label">Target state</div>
+        <select class="form-input">
+          ${STATES_DATA.map(s=>`<option>${s.code} — ${s.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="upload-zone mb-16" onclick="alert('In production: encrypted file upload with SHA-256 checksum verification')">
+        <div class="upload-icon">⬆</div>
+        <div style="font-size:13px;margin-bottom:4px">Drop encrypted data file here</div>
+        <div style="font-size:11px;color:var(--text2)">Accepted: .csv.enc · .json.enc · .xml.enc (AES-256)</div>
+      </div>
+      <button class="btn btn-primary" onclick="simulateIngest()">Simulate ingest batch</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">Processing pipeline</div></div>
+      <div class="timeline" id="pipelineTimeline">
+        ${renderPipeline('idle')}
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Ingest history</div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Batch ID</th><th>Agency</th><th>Submitted</th><th>Records</th><th>Status</th><th>Matched</th><th>Unmatched</th><th>Match rate</th></tr></thead>
+        <tbody>
+          ${BATCHES.map(b=>`<tr>
+            <td class="mono">${b.id}</td>
+            <td>${b.agency}</td>
+            <td class="mono">${b.submitted}</td>
+            <td class="mono">${fmt(b.records)}</td>
+            <td>${badge(b.status)}</td>
+            <td class="mono" style="color:var(--green)">${fmt(b.matched)}</td>
+            <td class="mono" style="color:${b.unmatched?'var(--amber)':'var(--text2)'}">${fmt(b.unmatched)}</td>
+            <td>${b.matched!=null?`<div style="display:flex;align-items:center;gap:8px"><div class="prog-bar" style="width:80px"><div class="prog-fill" style="width:${pct(b.matched,b.records)};background:var(--green)"></div></div><span class="mono" style="font-size:11px">${pct(b.matched,b.records)}</span></div>`:'—'}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderPipeline(state){
+  const steps=[
+    {label:'File received & checksum verified',done:state!=='idle'},
+    {label:'Decrypt & parse records',done:state==='matching'||state==='done'},
+    {label:'Cross-reference SSA / USCIS / DMV',done:state==='done'},
+    {label:'Flag mismatches & duplicates',done:state==='done'},
+    {label:'Append to State Citizenship List',done:state==='done'},
+  ];
+  return steps.map(s=>`
+    <div class="timeline-item">
+      <div class="timeline-dot ${s.done?'timeline-dot-done':'timeline-dot-pending'}"></div>
+      <div style="font-size:12px;color:${s.done?'var(--text)':'var(--text2)'}">${s.label}</div>
+    </div>`).join('');
+}
+
+let ingestStep=0;
+function simulateIngest(){
+  ingestStep=0;
+  const steps=['idle','received','matching','done'];
+  const tl=document.getElementById('pipelineTimeline');
+  const tick=()=>{
+    if(ingestStep>=steps.length)return;
+    tl.innerHTML=renderPipeline(steps[ingestStep]);
+    ingestStep++;
+    if(ingestStep<steps.length) setTimeout(tick,1200);
+  };
+  tick();
+}
+
+function renderStates(){
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">State Election Official Dashboard</div>
+      <div class="section-meta">Citizenship list delivery · mail ballot coordination</div>
+    </div>
+  </div>
+
+  <div class="stats-grid mb-24">
+    <div class="stat-card">
+      <div class="stat-label">Pilot states</div>
+      <div class="stat-value accent" style="color:var(--accent)">${STATES_DATA.length}</div>
+      <div class="stat-meta">In this prototype</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Lists transmitted</div>
+      <div class="stat-value" style="color:var(--green)">${STATE_STATS.filter(s=>s.listTransmitted).length}</div>
+      <div class="stat-meta">of ${STATES_DATA.length} states</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total verified</div>
+      <div class="stat-value" style="color:var(--accent)">${fmt(STATE_STATS.reduce((a,s)=>a+s.verified,0))}</div>
+      <div class="stat-meta">Across all pilot states</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total flagged</div>
+      <div class="stat-value" style="color:var(--amber)">${fmt(STATE_STATS.reduce((a,s)=>a+s.flagged,0))}</div>
+      <div class="stat-meta">Pending resolution</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>State</th><th>Total registered</th><th>Verified</th><th>Pending</th><th>Flagged</th><th>Mail ballot enrolled</th><th>List status</th><th>Last sync</th><th></th></tr></thead>
+        <tbody>
+          ${STATE_STATS.map(s=>`<tr>
+            <td><strong>${s.code}</strong> <span style="color:var(--text2)">${s.name}</span></td>
+            <td class="mono">${fmt(s.totalRegistered)}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div class="prog-bar" style="width:60px"><div class="prog-fill" style="width:${pct(s.verified,s.totalRegistered)};background:var(--green)"></div></div>
+                <span class="mono" style="font-size:11px">${pct(s.verified,s.totalRegistered)}</span>
+              </div>
+            </td>
+            <td class="mono" style="color:var(--amber)">${fmt(s.pending)}</td>
+            <td class="mono" style="color:var(--red)">${fmt(s.flagged)}</td>
+            <td class="mono">${fmt(s.mailBallotEnrolled)}</td>
+            <td><span class="badge ${s.listTransmitted?'badge-verified':'badge-pending'}">${s.listTransmitted?'transmitted':'pending'}</span></td>
+            <td class="mono" style="font-size:11px;color:var(--text2)">${s.lastSync}</td>
+            <td><button class="btn btn-outline btn-sm" onclick="alert('State API: GET /api/v1/states/${s.code}/citizenship-list\nReturns encrypted CSV · JWT required')">Pull list</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderMailBallot(){
+  const enrolled=CITIZENS.filter(c=>c.enrolledMailBallot);
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">Mail Ballot Participation List</div>
+      <div class="section-meta">USPS coordination · only verified enrolled citizens receive mail ballots</div>
+    </div>
+  </div>
+
+  <div class="alert alert-info">
+    ℹ Per the executive order, USPS only transmits ballots to citizens appearing on this list. States submit their Mail-in and Absentee Participation List to DHS; this interface manages enrollment status.
+  </div>
+
+  <div class="stats-grid mb-24">
+    <div class="stat-card green">
+      <div class="stat-label">Enrolled (sample)</div>
+      <div class="stat-value">${enrolled.length}</div>
+      <div class="stat-meta">${pct(enrolled.length,CITIZENS.length)} of verified citizens</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">USPS feed status</div>
+      <div class="stat-value" style="color:var(--green);font-size:18px">Active</div>
+      <div class="stat-meta">Last push: 2026-04-04 06:00</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="stat-label">Address mismatches</div>
+      <div class="stat-value">1,284</div>
+      <div class="stat-meta">USPS vs. registration address</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Pending USPS confirm</div>
+      <div class="stat-value" style="color:var(--accent)">8,441</div>
+      <div class="stat-meta">Awaiting delivery confirmation</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header"><div class="card-title">Enrolled citizens (sample — ${enrolled.length} records)</div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Record ID</th><th>Name</th><th>State</th><th>County</th><th>Status</th><th>USPS address match</th></tr></thead>
+        <tbody>
+          ${enrolled.slice(0,25).map(c=>`<tr>
+            <td class="mono">${c.id}</td>
+            <td>${c.firstName} ${c.lastName}</td>
+            <td>${c.state}</td>
+            <td>${c.county}</td>
+            <td>${badge(c.status)}</td>
+            <td><span class="badge ${Math.random()>0.1?'badge-verified':'badge-flagged'}">${Math.random()>0.1?'confirmed':'mismatch'}</span></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderLookup(){
+  return `
+  <div class="lookup-wrap">
+    <div class="section-header mb-16">
+      <div>
+        <div class="section-title">Citizen Eligibility Lookup</div>
+        <div class="section-meta">Public-facing portal · verify your status on the State Citizenship List</div>
+      </div>
+    </div>
+
+    <div class="lookup-box mb-16">
+      <div class="lookup-title">Check your voter eligibility status</div>
+      <div class="lookup-sub">Enter your information to verify you appear on your state's citizenship list. This does not register you to vote — contact your state election office for registration.</div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">First name</div>
+          <input class="form-input" id="lkFirstName" placeholder="Jane">
+        </div>
+        <div class="form-group">
+          <div class="form-label">Last name</div>
+          <input class="form-input" id="lkLastName" placeholder="Smith">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <div class="form-label">Date of birth</div>
+          <input class="form-input" id="lkDob" type="date">
+        </div>
+        <div class="form-group">
+          <div class="form-label">State</div>
+          <select class="form-input" id="lkState">
+            <option value="">Select state…</option>
+            ${STATES_DATA.map(s=>`<option value="${s.code}">${s.code} — ${s.name}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="form-group mb-16">
+        <div class="form-label">Last 4 digits of SSN</div>
+        <input class="form-input" id="lkSsn" placeholder="XXXX" maxlength="4" style="width:120px">
+      </div>
+
+      <button class="btn btn-primary" onclick="runLookup()">Check eligibility status</button>
+    </div>
+
+    <div id="lookupResult"></div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">What does each status mean?</div></div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="badge badge-verified" style="flex-shrink:0;margin-top:2px">verified</span>
+          <span style="font-size:12px;color:var(--text2)">Your citizenship has been confirmed across federal data sources. You appear on your state's list and are eligible to receive a mail ballot if enrolled.</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="badge badge-pending" style="flex-shrink:0;margin-top:2px">pending</span>
+          <span style="font-size:12px;color:var(--text2)">Your record is being cross-referenced across agencies. This typically resolves within 5 business days. Contact your state election office if this persists.</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="badge badge-flagged" style="flex-shrink:0;margin-top:2px">flagged</span>
+          <span style="font-size:12px;color:var(--text2)">A discrepancy was found in your records. You must contact your state election office to resolve. Being flagged does not remove you from the voter rolls.</span>
+        </div>
+        <div style="display:flex;gap:12px;align-items:flex-start">
+          <span class="badge badge-unmatched" style="flex-shrink:0;margin-top:2px">not found</span>
+          <span style="font-size:12px;color:var(--text2)">Your record was not found. This may mean your state's data has not yet been fully processed. Contact DHS or your state election office to correct your record.</span>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function runLookup(){
+  const first=document.getElementById('lkFirstName').value.trim();
+  const last=document.getElementById('lkLastName').value.trim();
+  const state=document.getElementById('lkState').value;
+  if(!first||!last||!state){
+    document.getElementById('lookupResult').innerHTML=`<div class="alert alert-warn">Please fill in first name, last name, and state.</div>`;
+    return;
+  }
+  // Find a matching citizen or simulate
+  const match=CITIZENS.find(c=>c.state===state&&c.firstName.toLowerCase()===first.toLowerCase())||null;
+  const status=match?match.status:Math.random()>0.15?'verified':'not-found';
+  const displayStatus=match?match.status:'unmatched';
+
+  const msgs={
+    verified:`<div style="font-size:16px;font-weight:500;color:var(--green);margin-bottom:8px">✓ Verified — you appear on the ${state} citizenship list</div>
+      <div style="font-size:12px;color:var(--text2)">Your citizenship has been confirmed. You are eligible to vote in federal elections in ${state}. ${match&&match.enrolledMailBallot?'You are enrolled to receive a mail ballot.':'To receive a mail ballot, contact your state election office.'}</div>`,
+    pending:`<div style="font-size:16px;font-weight:500;color:var(--amber);margin-bottom:8px">⏳ Pending — your record is being verified</div>
+      <div style="font-size:12px;color:var(--text2)">Cross-agency verification is in progress. Check back in 5 business days or contact your state election office.</div>`,
+    flagged:`<div style="font-size:16px;font-weight:500;color:var(--red);margin-bottom:8px">⚠ Flagged — action required</div>
+      <div style="font-size:12px;color:var(--text2)">A discrepancy was found in your records. Please contact your state election office with your identification documents.</div>`,
+    unmatched:`<div style="font-size:16px;font-weight:500;color:var(--text2);margin-bottom:8px">✗ Record not found</div>
+      <div style="font-size:12px;color:var(--text2)">No record found for the information provided. Your state's data may still be processing, or there may be an error. Contact DHS at 1-800-XXX-XXXX or your state election office.</div>`,
+  };
+
+  document.getElementById('lookupResult').innerHTML=`
+    <div class="result-box ${displayStatus==='unmatched'?'not-found':displayStatus} mb-16">
+      ${msgs[displayStatus]||msgs.unmatched}
+    </div>`;
+}
+
+function renderReconcile(){
+  const flagged=CITIZENS.filter(c=>c.status==='flagged');
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">Reconciliation Queue</div>
+      <div class="section-meta">${flagged.length} flagged records require review</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Record ID</th><th>Name</th><th>State</th><th>Flag reason</th><th>Data source</th><th>Action</th></tr></thead>
+        <tbody>
+          ${flagged.map(c=>`<tr>
+            <td class="mono">${c.id}</td>
+            <td>${c.firstName} ${c.lastName}</td>
+            <td>${c.state}</td>
+            <td style="color:var(--amber);font-size:11px">${c.flagReason}</td>
+            <td style="color:var(--text2);font-size:11px">${c.dataSource}</td>
+            <td style="display:flex;gap:6px">
+              <button class="btn btn-outline btn-sm" onclick="openCitizen('${c.id}')">Review</button>
+              <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:rgba(46,194,126,0.3)" onclick="alert('In production: marks record as resolved after supervisor review')">Resolve</button>
+            </td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderAudit(){
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">Audit Log</div>
+      <div class="section-meta">All system actions are logged with user, timestamp, and detail per federal records requirements</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Timestamp (UTC)</th><th>User</th><th>Action</th><th>Detail</th></tr></thead>
+        <tbody>
+          ${AUDIT_LOG.map(e=>`<tr>
+            <td class="mono" style="font-size:11px">${e.ts}</td>
+            <td class="mono" style="font-size:11px">${e.user}</td>
+            <td><span class="badge badge-pending">${e.action}</span></td>
+            <td style="font-size:12px">${e.detail}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
+}
+
+function renderAPI(){
+  const endpoints=[
+    {method:'GET',path:'/api/v1/states/{state}/citizenship-list',auth:'State official JWT',desc:'Returns full citizenship list for the specified state. Encrypted, paginated.'},
+    {method:'POST',path:'/api/v1/ingest/batch',auth:'Agency API key',desc:'Submit a new data batch from SSA, USCIS, or DMV. Requires encrypted payload + SHA-256 checksum.'},
+    {method:'GET',path:'/api/v1/citizens/{id}',auth:'DHS admin JWT',desc:'Retrieve a single citizen record by DHS record ID.'},
+    {method:'PATCH',path:'/api/v1/citizens/{id}/status',auth:'DHS admin JWT',desc:'Update verification status. Triggers audit log entry.'},
+    {method:'GET',path:'/api/v1/mailballot/{state}/list',auth:'USPS system key',desc:'Returns the Mail-in and Absentee Participation List for USPS delivery gating.'},
+    {method:'POST',path:'/api/v1/citizens/{id}/correction',auth:'Public (rate-limited)',desc:'Submit a citizen-initiated correction request. Requires identity verification challenge.'},
+    {method:'GET',path:'/api/v1/states/{state}/stats',auth:'State official JWT',desc:'Summary statistics for the state — verified, pending, flagged counts.'},
+    {method:'GET',path:'/api/v1/audit',auth:'DHS admin JWT',desc:'Full audit log. Supports date range and user filtering.'},
+  ];
+  const methodColor={GET:'var(--green)',POST:'var(--accent)',PATCH:'var(--amber)',DELETE:'var(--red)'};
+  return `
+  <div class="section-header mb-16">
+    <div>
+      <div class="section-title">API Reference</div>
+      <div class="section-meta">RESTful · JWT auth · TLS 1.3 · FedRAMP-ready</div>
+    </div>
+  </div>
+  <div class="alert alert-info mb-16">ℹ Base URL: <span class="mono">https://voter-eligibility.dhs.gov/api/v1</span> · All responses JSON · Rate limits apply per role</div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${endpoints.map(e=>`
+        <div style="border:1px solid var(--border2);border-radius:3px;padding:14px 16px;">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+            <span class="mono" style="font-size:11px;font-weight:600;color:${methodColor[e.method]}">${e.method}</span>
+            <span class="mono" style="font-size:12px">${e.path}</span>
+            <span style="margin-left:auto;font-size:10px;color:var(--text2);font-family:var(--mono)">${e.auth}</span>
+          </div>
+          <div style="font-size:12px;color:var(--text2)">${e.desc}</div>
+        </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── Detail panel ───────────────────────────────────────────────────────────
+function openCitizen(id){
+  const c=CITIZENS.find(x=>x.id===id);
+  if(!c)return;
+  document.getElementById('detailContent').innerHTML=`
+    <div style="margin-bottom:20px">
+      <div style="font-size:18px;font-weight:500">${c.firstName} ${c.lastName}</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--text2);margin-top:2px">${c.id}</div>
+      <div style="margin-top:10px">${badge(c.status)}</div>
+    </div>
+    <div class="detail-divider"></div>
+    <div class="detail-field"><div class="detail-label">Date of birth</div><div class="detail-value mono">${c.dob} (age ${c.age})</div></div>
+    <div class="detail-field"><div class="detail-label">State</div><div class="detail-value">${c.state} — ${c.stateName}</div></div>
+    <div class="detail-field"><div class="detail-label">County</div><div class="detail-value">${c.county}</div></div>
+    <div class="detail-field"><div class="detail-label">SSN (masked)</div><div class="detail-value mono">${c.ssn}</div></div>
+    <div class="detail-field"><div class="detail-label">Driver's license</div><div class="detail-value mono">${c.dlNumber}</div></div>
+    <div class="detail-divider"></div>
+    <div class="detail-field"><div class="detail-label">Data source</div><div class="detail-value">${c.dataSource}</div></div>
+    <div class="detail-field"><div class="detail-label">Last verified</div><div class="detail-value mono">${c.lastVerified}</div></div>
+    <div class="detail-field"><div class="detail-label">Mail ballot enrolled</div><div class="detail-value">${c.enrolledMailBallot?'<span style="color:var(--green)">Yes — on USPS send list</span>':'<span style="color:var(--text2)">No</span>'}</div></div>
+    ${c.flagReason?`<div class="detail-divider"></div><div class="detail-field"><div class="detail-label" style="color:var(--red)">Flag reason</div><div class="detail-value" style="color:var(--amber)">${c.flagReason}</div></div>`:''}
+    <div class="detail-divider"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="alert('In production: opens correction workflow')">Submit correction</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--green);border-color:rgba(46,194,126,0.3)" onclick="alert('In production: marks as verified after review')">Mark verified</button>
+      <button class="btn btn-outline btn-sm" style="color:var(--red);border-color:rgba(214,64,69,0.3)" onclick="alert('In production: flags for senior review')">Escalate</button>
+    </div>`;
+  document.getElementById('detailPanel').classList.add('open');
+}
+
+function closeDetail(){
+  document.getElementById('detailPanel').classList.remove('open');
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────
+function render(){
+  const map={
+    dashboard:renderDashboard,
+    architecture:renderArchitecture,
+    citizens:renderCitizens,
+    ingest:renderIngest,
+    states:renderStates,
+    mailballot:renderMailBallot,
+    lookup:renderLookup,
+    reconcile:renderReconcile,
+    audit:renderAudit,
+    api:renderAPI,
+  };
+  document.getElementById('content').innerHTML=(map[currentPage]||renderDashboard)();
+}
+
+render();
+</script>
+
+<script>
+/* ============================================================
+   © 2026 Turtle Logistics LLC. All Rights Reserved.
+   Proprietary and Confidential.
+   This software and its source code are the exclusive property
+   of Turtle Logistics LLC. Unauthorized copying, reproduction,
+   modification, distribution, or deployment of this software,
+   in whole or in part, is strictly prohibited without the
+   express written consent of Turtle Logistics LLC.
+   Any unauthorized use constitutes copyright infringement and
+   may be subject to civil and criminal penalties under
+   17 U.S.C. § 101 et seq. (U.S. Copyright Act).
+   Submitted to the U.S. Department of Homeland Security
+   for evaluation purposes only. Evaluation does not constitute
+   a license to use, reproduce, or deploy this software.
+   Contact: legal@turtlelogistics.com
+   ============================================================ */
+
+(function(){
+  var _allowed = [
+    'localhost',
+    '127.0.0.1',
+    'turtlelogistics.com',
+    'turtle-logistics',
+    'dhs-voter-eligibility',
+    'vercel.app'
+  ];
+  var host = window.location.hostname.toLowerCase();
+  var authorized = _allowed.some(function(d){ return host === d || host.indexOf(d) !== -1; });
+  if(!authorized){
+    document.body.innerHTML = [
+      '<div style="font-family:monospace;background:#0a1628;color:#e8edf4;height:100vh;display:flex;',
+      'align-items:center;justify-content:center;flex-direction:column;gap:16px;padding:32px;text-align:center">',
+      '<div style="font-size:48px">⚠</div>',
+      '<div style="font-size:20px;font-weight:600;color:#d64045">Unauthorized Deployment Detected</div>',
+      '<div style="font-size:14px;color:#8da0b8;max-width:480px">This application is proprietary software owned by<br>',
+      '<strong style="color:#e8edf4">Turtle Logistics LLC</strong>.<br><br>',
+      'It is not authorized to run on this domain.<br>',
+      'Unauthorized use is a violation of 17 U.S.C. § 101 et seq.</div>',
+      '<div style="font-size:12px;color:#636e7a;margin-top:8px">Detected host: <span style="color:#d64045">' + host + '</span></div>',
+      '<div style="font-size:12px;color:#636e7a">Contact: legal@turtlelogistics.com</div>',
+      '</div>'
+    ].join('');
+  }
+  // Watermark canvas fingerprint on copy
+  document.addEventListener('copy', function(){
+    var sel = window.getSelection();
+    if(sel && sel.toString().length > 50){
+      var wm = '\n\n[© 2026 Turtle Logistics LLC — Proprietary & Confidential — Unauthorized use prohibited]';
+      var e = document.createElement('div');
+      e.style.position='absolute';e.style.left='-9999px';
+      e.innerHTML = sel.toString() + wm;
+      document.body.appendChild(e);
+      sel.selectAllChildren(e);
+      setTimeout(function(){ document.body.removeChild(e); sel.removeAllRanges(); }, 100);
+    }
+  });
+})();
+</script>
+</body>
+</html>
